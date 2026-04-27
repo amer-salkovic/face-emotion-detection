@@ -6,35 +6,34 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 
 app = Flask(__name__)
+
+# 1. DOZVOLJAVAMO SVE (Bukvalno sve)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "*")
+    return response
 
 @app.route('/analyze', methods=['POST', 'OPTIONS'])
 def analyze():
+    # 2. RUČNI ODGOVOR NA OPTIONS
     if request.method == 'OPTIONS':
-        response = make_response()
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add('Access-Control-Allow-Headers', "*")
-        response.headers.add('Access-Control-Allow-Methods', "*")
-        return response, 200
+        return jsonify({"status": "ok"}), 200
 
     try:
         data = request.get_json()
-        img_b64 = data['image'].split(",")[1]
-        img_bytes = base64.b64decode(img_b64)
-        np_arr = np.frombuffer(img_bytes, np.uint8)
-        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
-        # DEBUG LOG: Proveravamo da li je slika stigla
-        height, width, _ = frame.shape
-        print(f"Debug: Primljena slika velicine {width}x{height}")
-
-        # OVDE ISKLJUČUJEMO DEEPFACE ZA TEST
-        # dominant = "Testing..." 
         
+        # DEBUG LOG: Ovo ćemo gledati u Render logovima
+        print("Debug: Zahtev primljen uspešno!")
+        
+        # Test povratna informacija bez ikakve obrade slike
         return jsonify({
             "status": "success",
-            "emotion": "debug-mode-active",
-            "confidence": 0.99
+            "emotion": "CORS-FIXED",
+            "confidence": 1.0
         })
 
     except Exception as e:
