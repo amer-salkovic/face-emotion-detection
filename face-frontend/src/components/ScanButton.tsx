@@ -22,18 +22,34 @@ export default function ScanButton({ onResult }: ScanButtonProps) {
   const handleScan = async () => {
     setIsLoading(true);
     try {
-      // Calling our internal Next.js API Route (Proxy)
-      const response = await fetch('/api/emotion');
+      // 1. Pronađi video element na stranici
+      const video = document.querySelector('video');
+      if (!video) throw new Error("Kamera nije pronađena");
+
+      // 2. Napravi "snimak" trenutnog frejma pomoću Canvas-a
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(video, 0, 0);
       
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      // 3. Pretvori sliku u Base64 format
+      const imageBase64 = canvas.toDataURL('image/jpeg');
+
+      // 4. Pošalji sliku na tvoj RENDER backend (direktno ili preko env varijable)
+     const response = await fetch(`https://face-emotion-detection-6p1s.onrender.com/analyze`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ image: imageBase64 }),
+});
+      
+      if (!response.ok) throw new Error('Neural Engine returned an error');
 
       const data = await response.json();
       onResult(data);
     } catch (error) {
       console.error("Scanning process failed:", error);
-      onResult({ status: 'error', message: 'Failed to connect to Neural Engine' });
+      onResult({ status: 'error', message: 'Neural Engine connection timed out' });
     } finally {
       setIsLoading(false);
     }
