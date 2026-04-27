@@ -1,27 +1,23 @@
 import os
 from flask import Flask, request, jsonify, make_response
-from flask_cors import CORS
 
 app = Flask(__name__)
-# Dozvoljavamo sve, ali dodajemo i ručna zaglavlja za svaki slučaj
-CORS(app, supports_credentials=True)
 
-@app.before_request
-def handle_preflight():
-    if request.method == "OPTIONS":
-        response = make_response()
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add('Access-Control-Allow-Headers', "*")
-        response.headers.add('Access-Control-Allow-Methods', "*")
-        return response
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
-@app.route('/analyze', methods=['POST'])
+@app.route('/analyze', methods=['POST', 'OPTIONS'])
 def analyze():
-    # Test odgovor da vidimo da li prolazi
-    res = jsonify({"status": "success", "emotion": "CORS_BYPASSED"})
-    res.headers.add("Access-Control-Allow-Origin", "*")
-    return res
+    if request.method == 'OPTIONS':
+        return make_response("", 200)
+    
+    # Debug odgovor
+    return jsonify({"status": "success", "emotion": "Proradilo je!"})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)# force rebuild
