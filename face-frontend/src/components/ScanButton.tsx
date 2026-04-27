@@ -26,11 +26,13 @@ export default function ScanButton({ onResult }: ScanButtonProps) {
       const imageBase64 = canvas.toDataURL('image/jpeg');
 
       // 3. Pozovi Render Backend
-      const response = await fetch(`https://face-emotion-detection-6p1s.onrender.com/analyze`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: imageBase64 }),
-      });
+      const response = await fetch(`https://face-emotion-detection-6p1s.onrender.com/analyze?t=${Date.now()}`, {
+  method: 'POST',
+  headers: { 
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ image: imageBase64 }),
+});
       
       if (!response.ok) throw new Error('Neural Engine returned an error');
 
