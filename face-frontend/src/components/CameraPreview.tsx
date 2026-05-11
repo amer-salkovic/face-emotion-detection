@@ -19,7 +19,7 @@ const CameraPreview = forwardRef<HTMLVideoElement>((_, ref) => {
                 currentStream = await navigator.mediaDevices.getUserMedia({ 
                     video: {
                         width: { ideal: 1280 },
-                        height: { ideal: 720 },
+                        height: { ideal: 1024 },
                         facingMode: 'user' // Ensures mobile users use front camera
                     } 
                 });
@@ -44,13 +44,13 @@ const CameraPreview = forwardRef<HTMLVideoElement>((_, ref) => {
     }, []);
 
     return (
-        <div className="relative w-full max-w-xl aspect-video rounded-3xl overflow-hidden bg-gray-950 border-2 border-gray-800 shadow-2xl">
+        <div className="relative w-full max-w-full mx-auto aspect-[2/3] sm:aspect-[4/5] min-h-[520px] sm:min-h-[600px] md:min-h-[680px] rounded-3xl overflow-hidden bg-gray-950 border-2 border-gray-800 shadow-2xl">
             <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-black"
                 style={{ transform: 'scaleX(-1)' }} // Mirrors display for natural user feeling
             />
             

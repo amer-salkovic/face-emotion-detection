@@ -20,7 +20,7 @@ export default function EmotionScanner() {
   const videoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
 
   return (
-    <section className="flex flex-col items-center w-full max-w-2xl gap-8">
+    <section className="flex flex-col items-center w-full max-w-full lg:max-w-4xl gap-8">
       {/* Vision Input */}
       <div className="w-full">
         <CameraPreview ref={videoRef} />
