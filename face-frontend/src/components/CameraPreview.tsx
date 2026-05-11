@@ -44,7 +44,7 @@ const CameraPreview = forwardRef<HTMLVideoElement>((_, ref) => {
     }, []);
 
     return (
-        <div className="relative w-full max-w-full mx-auto aspect-[2/3] sm:aspect-[4/5] min-h-[520px] sm:min-h-[600px] md:min-h-[680px] rounded-3xl overflow-hidden bg-gray-950 border-2 border-gray-800 shadow-2xl">
+        <div className="relative w-full max-w-full mx-auto h-[72vh] sm:h-[78vh] md:h-[82vh] lg:h-[86vh] rounded-3xl overflow-hidden bg-gray-950 border-2 border-gray-800 shadow-2xl">
             <video
                 ref={videoRef}
                 autoPlay
