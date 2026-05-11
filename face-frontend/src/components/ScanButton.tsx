@@ -1,46 +1,92 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import * as faceapi from 'face-api.js';
 
 interface ScanButtonProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   onResult: (data: any) => void;
 }
 
-export default function ScanButton({ onResult }: ScanButtonProps) {
+export default function ScanButton({ videoRef, onResult }: ScanButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+
+  // Učitaj modele samo jednom pri mountanju
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+        ]);
+        setModelsLoaded(true);
+        console.log('✅ Face-API modeli učitani!');
+      } catch (error) {
+        console.error('❌ Greška pri učitavanju modela:', error);
+      }
+    };
+
+    loadModels();
+  }, []);
 
   const handleScan = async () => {
-    setIsLoading(true);
+    if (!modelsLoaded) {
+      onResult({
+        status: 'error',
+        emotion: 'ERROR',
+        confidence: 0,
+        message: 'Modeli se još uvek učitavaju...',
+      });
+      return;
+    }
+
     try {
-      // 1. Pronađi video element
-      const video = document.querySelector('video');
-      if (!video) throw new Error("Kamera nije pronađena");
+      setIsLoading(true);
 
-      // 2. Napravi snimak frejma
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(video, 0, 0);
-      
-      const imageBase64 = canvas.toDataURL('image/jpeg');
+      // Detektuj lice i emocije
+      if (videoRef.current) {
+        const detections = await faceapi.detectSingleFace(
+          videoRef.current,
+          new faceapi.TinyFaceDetectorOptions()
+        ).withFaceExpressions();
 
-      // 3. Pozovi Render Backend
-      const response = await fetch(`https://face-emotion-detection-6p1s.onrender.com/analyze?t=${Date.now()}`, {
-  method: 'POST',
-  headers: { 
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ image: imageBase64 }),
-});
-      
-      if (!response.ok) throw new Error('Neural Engine returned an error');
+        if (detections) {
+          // Nađi dominantnu emociju
+          const expressions = detections.expressions;
+          const emotionEntries = Object.entries(expressions);
+          const dominantEntry = emotionEntries.reduce((max, current) =>
+            current[1] > max[1] ? current : max
+          );
+          const dominant = dominantEntry[0] as keyof typeof expressions;
+          const confidenceValue = (expressions[dominant] as number) || 0;
 
-      const data = await response.json();
-      onResult(data);
+          const confidence = Math.round(confidenceValue * 100);
+
+          // Prosledi rezultat parent komponenti
+          onResult({
+            status: 'success',
+            emotion: dominant.charAt(0).toUpperCase() + dominant.slice(1),
+            confidence,
+          });
+        } else {
+          onResult({
+            status: 'error',
+            emotion: 'NO_FACE',
+            confidence: 0,
+            message: '❌ Lice nije detektovano. Približi se kameri!',
+          });
+        }
+      }
     } catch (error) {
-      console.error("Scanning failed:", error);
-      onResult({ status: 'error', message: 'Neural Engine connection failed' });
+      console.error('Greška pri analizi:', error);
+      onResult({
+        status: 'error',
+        emotion: 'ERROR',
+        confidence: 0,
+        message: 'Greška pri analizi: ' + (error instanceof Error ? error.message : 'Unknown error'),
+      });
     } finally {
       setIsLoading(false);
     }

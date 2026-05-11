@@ -3,7 +3,7 @@
  * EmotionScanner Orchestrator
  * Manages the state machine between camera feed, analysis trigger, and result rendering.
  */
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import CameraPreview from './CameraPreview';
 import ScanButton from './ScanButton';
 import EmotionDisplay from './EmotionDisplay';
@@ -17,17 +17,18 @@ interface AnalysisResult {
 
 export default function EmotionScanner() {
   const [data, setData] = useState<AnalysisResult | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
 
   return (
     <section className="flex flex-col items-center w-full max-w-2xl gap-8">
       {/* Vision Input */}
       <div className="w-full">
-        <CameraPreview />
+        <CameraPreview ref={videoRef} />
       </div>
 
       {/* Interaction & Result Output */}
       <div className="flex flex-col items-center gap-6 w-full px-4">
-        <ScanButton onResult={(res) => setData(res)} />
+        <ScanButton videoRef={videoRef} onResult={(res) => setData(res)} />
 
         <div className="w-full min-h-[140px] flex justify-center">
           {data?.status === 'success' && <EmotionDisplay result={data} />}

@@ -5,10 +5,10 @@
  * Accesses the user's webcam via navigator.mediaDevices and streams 
  * the track directly to a <video> element.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, forwardRef } from 'react';
 
-export default function CameraPreview() {
-    const videoRef = useRef<HTMLVideoElement>(null);
+const CameraPreview = forwardRef<HTMLVideoElement>((_, ref) => {
+    const videoRef = ref as React.MutableRefObject<HTMLVideoElement | null>;
 
     useEffect(() => {
         let currentStream: MediaStream | null = null;
@@ -61,4 +61,7 @@ export default function CameraPreview() {
             </div>
         </div>
     );
-}
+});
+
+CameraPreview.displayName = 'CameraPreview';
+export default CameraPreview;
