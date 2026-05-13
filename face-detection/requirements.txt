@@ -1,6 +1,0 @@
-flask
-flask-cors
-opencv-python-headless
-fer
-tensorflow-cpu==2.15.0
-gunicorn
